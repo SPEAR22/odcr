@@ -150,7 +150,7 @@ public class TFLiteObjectDetectionAPIModel implements Detector {
     // Pre-allocate buffers.
     int numBytesPerChannel;
     if (isQuantized) {
-      numBytesPerChannel = 4; // Quantized
+      numBytesPerChannel = 1; // Quantized
     } else {
       numBytesPerChannel = 4; // Floating point
     }
