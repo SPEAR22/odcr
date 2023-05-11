@@ -25,11 +25,13 @@ import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
+import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.util.TypedValue;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
@@ -38,6 +40,10 @@ import org.tensorflow.lite.examples.detection.tflite.Detector.Recognition;
 
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
 public class MultiBoxTracker {
+  // Declare TextToSpeech object
+  private TextToSpeech tts;
+
+
   private static final float TEXT_SIZE_DIP = 18;
   private static final float MIN_SIZE = 16.0f;
   private static final int[] COLORS = {
@@ -85,6 +91,18 @@ public class MultiBoxTracker {
         TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, context.getResources().getDisplayMetrics());
     borderedText = new BorderedText(textSizePx);
+
+    tts = new TextToSpeech(context, status -> {
+      if (status == TextToSpeech.SUCCESS) {
+        int result = tts.setLanguage(Locale.getDefault());
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+          logger.e("TTS language not supported");
+        }
+      } else {
+        logger.e("Error initializing TTS");
+      }
+    });
+
   }
 
   public synchronized void setFrameConfiguration(
@@ -161,6 +179,7 @@ public class MultiBoxTracker {
     screenRects.clear();
     final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
 
+    boolean isFirstDetection = true;
     for (final Recognition result : results) {
       if (result.getLocation() == null) {
         continue;
@@ -169,11 +188,19 @@ public class MultiBoxTracker {
 
       final RectF detectionScreenRect = new RectF();
       rgbFrameToScreen.mapRect(detectionScreenRect, detectionFrameRect);
-
       logger.v(
           "Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
 
       screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
+      // Speak the label and confidence score of the detected object using TTS
+      if (isFirstDetection) {
+        String label = result.getTitle();
+        float confidence = result.getConfidence();
+        String speech = String.format("%s", label);
+        tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
+        isFirstDetection = false;
+      }
+
 
       if (detectionFrameRect.width() < MIN_SIZE || detectionFrameRect.height() < MIN_SIZE) {
         logger.w("Degenerate rectangle! " + detectionFrameRect);
@@ -201,7 +228,9 @@ public class MultiBoxTracker {
         break;
       }
     }
+
   }
+
 
   private static class TrackedRecognition {
     RectF location;

@@ -10,15 +10,16 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/tfe_od_app_name"
+        android:label="O.D.C.R"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.ObjectDetection">
 
         <activity
             android:name=".DetectorActivity"
-            android:label="@string/tfe_od_app_name"
-            android:screenOrientation="portrait">
+            android:label="O.D.C.R"
+            android:screenOrientation="portrait"
+            android:exported = "true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
