@@ -79,6 +79,16 @@ public class MultiBoxTracker {
     for (final int color : COLORS) {
       availableColors.add(color);
     }
+    tts = new TextToSpeech(context, status -> {
+      if (status == TextToSpeech.SUCCESS) {
+        int result = tts.setLanguage(Locale.getDefault());
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+          logger.e("TTS language not supported");
+        }
+      } else {
+        logger.e("Error initializing TTS");
+      }
+    });
 
     boxPaint.setColor(Color.RED);
     boxPaint.setStyle(Style.STROKE);
@@ -92,16 +102,7 @@ public class MultiBoxTracker {
             TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, context.getResources().getDisplayMetrics());
     borderedText = new BorderedText(textSizePx);
 
-    tts = new TextToSpeech(context, status -> {
-      if (status == TextToSpeech.SUCCESS) {
-        int result = tts.setLanguage(Locale.getDefault());
-        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-          logger.e("TTS language not supported");
-        }
-      } else {
-        logger.e("Error initializing TTS");
-      }
-    });
+
 
   }
 
@@ -179,7 +180,6 @@ public class MultiBoxTracker {
     screenRects.clear();
     final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
 
-    boolean isFirstDetection = true;
     for (final Recognition result : results) {
       if (result.getLocation() == null) {
         continue;
@@ -193,6 +193,8 @@ public class MultiBoxTracker {
 
       screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
       // Speak the label and confidence score of the detected object using TTS
+      boolean isFirstDetection = true;
+
       if (isFirstDetection) {
         String label = result.getTitle();
         float confidence = result.getConfidence();
