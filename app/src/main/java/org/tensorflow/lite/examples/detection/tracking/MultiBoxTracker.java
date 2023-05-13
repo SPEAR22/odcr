@@ -40,9 +40,6 @@ import org.tensorflow.lite.examples.detection.tflite.Detector.Recognition;
 
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
 public class MultiBoxTracker {
-  // Declare TextToSpeech object
-  private TextToSpeech tts;
-
 
   private static final float TEXT_SIZE_DIP = 18;
   private static final float MIN_SIZE = 16.0f;
@@ -79,16 +76,6 @@ public class MultiBoxTracker {
     for (final int color : COLORS) {
       availableColors.add(color);
     }
-    tts = new TextToSpeech(context, status -> {
-      if (status == TextToSpeech.SUCCESS) {
-        int result = tts.setLanguage(Locale.getDefault());
-        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-          logger.e("TTS language not supported");
-        }
-      } else {
-        logger.e("Error initializing TTS");
-      }
-    });
 
     boxPaint.setColor(Color.RED);
     boxPaint.setStyle(Style.STROKE);
@@ -192,17 +179,6 @@ public class MultiBoxTracker {
           "Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
 
       screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
-      // Speak the label and confidence score of the detected object using TTS
-      boolean isFirstDetection = true;
-
-      if (isFirstDetection) {
-        String label = result.getTitle();
-        float confidence = result.getConfidence();
-        String speech = String.format("%s", label);
-        tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
-        isFirstDetection = false;
-      }
-
 
       if (detectionFrameRect.width() < MIN_SIZE || detectionFrameRect.height() < MIN_SIZE) {
         logger.w("Degenerate rectangle! " + detectionFrameRect);

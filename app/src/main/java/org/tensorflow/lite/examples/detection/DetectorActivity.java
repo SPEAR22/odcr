@@ -34,6 +34,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
 import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
@@ -53,11 +55,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   // Configuration values for the prepackaged SSD model.
   private static final int TF_OD_API_INPUT_SIZE = 320;
   private static final boolean TF_OD_API_IS_QUANTIZED = true;
-  private static final String TF_OD_API_MODEL_FILE = "detect_quant.tflite";
+  private static final String TF_OD_API_MODEL_FILE = "detect_quant_md.tflite";
   private static final String TF_OD_API_LABELS_FILE = "labelmap.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
-  private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.6f;
+  private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.53f;
   private static final boolean MAINTAIN_ASPECT = false;
   private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
   private static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -83,6 +85,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
 
+  private TextToSpeech tts;
+
+  private String plabel = null;
+
+
+  @Override
+  public void onDestroy() {
+    if (tts != null) {
+      tts.stop();
+      tts.shutdown();
+    }
+    super.onDestroy();
+  }
+
 
 
   @Override
@@ -106,6 +122,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               TF_OD_API_INPUT_SIZE,
               TF_OD_API_IS_QUANTIZED);
       cropSize = TF_OD_API_INPUT_SIZE;
+      tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+        @Override
+        public void onInit(int status) {
+          if (status == TextToSpeech.SUCCESS) {
+            int result = tts.setLanguage(Locale.US);
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+              LOGGER.w("TTS: Language is not supported.");
+            }
+          } else {
+            LOGGER.e("TTS: Initialization failed.");
+          }
+        }
+      });
+
     } catch (final IOException e) {
       e.printStackTrace();
       LOGGER.e(e, "Exception initializing Detector!");
@@ -214,11 +244,39 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               }
             }
 
+
             tracker.trackResults(mappedRecognitions, currTimestamp);
 
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
+
+            for (final Detector.Recognition result : results) {
+              final RectF location = result.getLocation();
+              if (location != null && result.getConfidence() >= minimumConfidence) {
+                canvas.drawRect(location, paint);
+
+                cropToFrameTransform.mapRect(location);
+
+                result.setLocation(location);
+                mappedRecognitions.add(result);
+                try {
+                  Thread.sleep(800); // sleep for 5 seconds
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+
+                // Speak out the name of the detected object
+                String label = result.getTitle();
+                if (!label.equals(plabel)) {
+                  tts.speak(label, TextToSpeech.QUEUE_FLUSH, null, "LABEL");
+                  plabel = label;
+                }
+
+
+              }
+
+            }
 
             runOnUiThread(
                 new Runnable() {
@@ -262,6 +320,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                   Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                 });
           }
+
         });
   }
 
@@ -280,4 +339,5 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           }
         });
   }
+
 }
