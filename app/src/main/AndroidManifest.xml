@@ -11,8 +11,8 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="O.D.C.R"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="Meta-Vision"
+
         android:supportsRtl="true"
         android:theme="@style/AppTheme.ObjectDetection">
         <activity
