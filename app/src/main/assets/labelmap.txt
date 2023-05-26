@@ -25,6 +25,7 @@ bird
 motorcycle
 stop sign
 fire hydrant
+tv
 chair
 dining table
 remote
