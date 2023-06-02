@@ -1,121 +1,28 @@
-# TensorFlow Lite Object Detection Android Demo
+#Object Detection and currency Recognition Android Application
 
-### Overview
+#Metavision
 
-This is a camera app that continuously detects the objects (bounding boxes and
-classes) in the frames seen by your device's back camera, using a quantized
-[MobileNet SSD](https://github.com/tensorflow/models/tree/master/research/object_detection)
-model trained on the [COCO dataset](http://cocodataset.org/). These instructions
-walk you through building and running the demo on an Android device.
+This app uses a model trained using TF2 and model was trained on SSD mobile net Algorithm. 
+Classes model can detect:
+Certainly! Here's the list of labels categorized in a tabular format:
 
-The model files are downloaded via Gradle scripts when you build and run. You
-don't need to do any steps to download TFLite models into the project
-explicitly.
+| Category                   | Labels                                             |
+|----------------------------|----------------------------------------------------|
+| Time and Measurement       | Clock                                              |
+| People and Animals         | Person, Cat, Bird, Dog, Sheep, Giraffe, Elephant, Cow, Horse, Zebra, Bear |
+| Sports and Activities      | Skis, Bicycle, Surfboard, Snowboard, Frisbee, Tennis racket, Skateboard, Baseball bat, Baseball glove, Kite |
+| Food and Drink             | Knife, Cake, Sandwich, Cup, Pizza, Donut, Hot dog, Broccoli, Orange, Carrot, Banana |
+| Objects and Furniture      | Backpack, Handbag, Umbrella, Teddy bear, Suitcase, Bottle, Refrigerator, Microwave, Oven, TV, Chair, Dining table, Remote, Couch, Cell phone, Laptop, Book, Bowl, Vase, Toaster, Hair drier |
+| Vehicles and Transportation | Car, Motorcycle, Airplane, Boat, Truck, Train      |
+| Money and Currency         | ₹10 coin, ₹2, ₹ 1, ₹5, 200, 500, 20, 10, 100, 50   |
+| Miscellaneous              | Traffic light, Stop sign, Fire hydrant, Parking meter, Scissors, Toothbrush |
 
-Application can run either on device or emulator.
+Result:
 
-<!-- TODO(b/124116863): Add app screenshot. -->
+![image](https://github.com/SPEAR22/odcr/assets/66453006/b136a999-7b0b-46a5-a4f3-b301640679e9)
+![image](https://github.com/SPEAR22/odcr/assets/66453006/77f4c9ad-cba5-4e68-8f78-edd3014fa4ea)
+![image](https://github.com/SPEAR22/odcr/assets/66453006/a71a8b0b-e5d3-4b01-9171-6cb24212d451)
+![image](https://github.com/SPEAR22/odcr/assets/66453006/5a906181-9f80-4c4e-be8b-8b7e5641117f)
+![image](https://github.com/SPEAR22/odcr/assets/66453006/35c1c991-25e2-41b1-8308-c24514a9e11d)
+![image](https://github.com/SPEAR22/odcr/assets/66453006/d4c5a417-4b57-4551-96d5-9d8185f832fb)
 
-## Build the demo using Android Studio
-
-### Prerequisites
-
-*   If you don't have already, install
-    **[Android Studio](https://developer.android.com/studio/index.html)**,
-    following the instructions on the website.
-
-*   You need an Android device and Android development environment with minimum
-    API 21.
-
-*   Android Studio 3.2 or later.
-
-### Building
-
-*   Open Android Studio, and from the Welcome screen, select Open an existing
-    Android Studio project.
-
-*   From the Open File or Project window that appears, navigate to and select
-    the tensorflow-lite/examples/object_detection/android directory from
-    wherever you cloned the TensorFlow Lite sample GitHub repo. Click OK.
-
-*   If it asks you to do a Gradle Sync, click OK.
-
-*   You may also need to install various platforms and tools, if you get errors
-    like "Failed to find target with hash string 'android-21'" and similar.
-    Click the `Run` button (the green arrow) or select `Run > Run 'android'`
-    from the top menu. You may need to rebuild the project using `Build >
-    Rebuild` Project.
-
-*   If it asks you to use Instant Run, click Proceed Without Instant Run.
-
-*   Also, you need to have an Android device plugged in with developer options
-    enabled at this point. See
-    **[here](https://developer.android.com/studio/run/device)** for more details
-    on setting up developer devices.
-
-#### Switch between inference solutions (Task library vs TFLite Interpreter)
-
-This object detection Android reference app demonstrates two implementation
-solutions,
-[lib_task_api](https://github.com/tensorflow/examples/tree/master/lite/examples/nl_classification/android/lib_task_api)
-that leverages the out-of-box API from the
-[TensorFlow Lite Task Library](https://www.tensorflow.org/lite/inference_with_metadata/task_library/object_detector),
-and
-[lib_interpreter](https://github.com/tensorflow/examples/tree/master/lite/examples/text_classification/android/lib_interpreter)
-that creates the custom inference pipleline using the
-[TensorFlow Lite Interpreter Java API](https://www.tensorflow.org/lite/guide/inference#load_and_run_a_model_in_java).
-You can change the build variant to whichever one you want to build and run—just
-go to `Build > Select Build Variant` and select one from the drop-down menu. See
-[configure product flavors in Android Studio](https://developer.android.com/studio/build/build-variants#product-flavors)
-for more details.
-
-### Model used
-
-Downloading, extraction and placing it in assets folder has been managed
-automatically by download.gradle.
-
-If you explicitly want to download the model, you can download from
-**[here](http://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip)**.
-Extract the zip to get the .tflite and label file.
-
-### Custom model used
-
-This example shows you how to perform TensorFlow Lite object detection using a
-custom model. * Clone the TensorFlow models GitHub repository to your computer.
-`git clone https://github.com/tensorflow/models/` * Build and install this
-repository. `cd models/research python3 setup.py build && python3 setup.py
-install` * Download the MobileNet SSD trained on
-**[Open Images v4](https://storage.googleapis.com/openimages/web/factsfigures_v4.html)**
-**[here](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md)**.
-Extract the pretrained TensorFlow model files. * Go to `models/research`
-directory and execute this code to get the frozen TensorFlow Lite graph.
-`python3 object_detection/export_tflite_ssd_graph.py \ --pipeline_config_path
-object_detection/samples/configs/ssd_mobilenet_v2_oid_v4.config \
---trained_checkpoint_prefix <directory with
-ssd_mobilenet_v2_oid_v4_2018_12_12>/model.ckpt \ --output_directory
-exported_model` * Convert the frozen graph to the TFLite model. `tflite_convert
-\ --input_shape=1,300,300,3 \ --input_arrays=normalized_input_image_tensor \
---output_arrays=TFLite_Detection_PostProcess,TFLite_Detection_PostProcess:1,TFLite_Detection_PostProcess:2,TFLite_Detection_PostProcess:3
-\ --allow_custom_ops \ --graph_def_file=exported_model/tflite_graph.pb \
---output_file=<directory with the TensorFlow examples
-repository>/lite/examples/object_detection/android/app/src/main/assets/detect.tflite`
-`input_shape=1,300,300,3` because the pretrained model works only with that
-input shape.
-
-`allow_custom_ops` is necessary to allow TFLite_Detection_PostProcess operation.
-
-`input_arrays` and `output_arrays` can be drawn from the visualized graph of the
-example detection model. `bazel run //tensorflow/lite/tools:visualize \
-"<directory with the TensorFlow examples
-repository>/lite/examples/object_detection/android/app/src/main/assets/detect.tflite"
-\ detect.html`
-
-*   Get `labelmap.txt` from the second column of
-    **[class-descriptions-boxable](https://storage.googleapis.com/openimages/2018_04/class-descriptions-boxable.csv)**.
-*   In `DetectorActivity.java` set `TF_OD_API_IS_QUANTIZED` to `false`.
-
-### Additional Note
-
-_Please do not delete the assets folder content_. If you explicitly deleted the
-files, then please choose *Build*->*Rebuild* from menu to re-download the
-deleted model files into assets folder.
